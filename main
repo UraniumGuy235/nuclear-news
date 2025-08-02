@@ -1,0 +1,69 @@
+import streamlit as st
+import requests
+import pandas as pd
+from collections import defaultdict
+import plotly.express as px
+
+st.set_page_config(page_title="Global Nuclear Construction", layout="wide")
+st.title("🌍 Nuclear Construction Tracker")
+
+@st.cache_data
+def fetch_articles():
+    articles = []
+    # example: pull from Reuters / World Nuclear News / IAEA press feeds
+    resp = requests.get("https://pris.iaea.org/pris/worldstatistics/underconstructionreactorsbyregion.aspx")
+    if resp.ok:
+        data = resp.text
+        # parse count by region if needed...
+    # pull Reuters stories:
+    urls = [
+        "https://www.reuters.com/business/energy/uk-approves-sizewell-c-nuclear-plant-after-la-caisse-investment-2025-07-22/",
+        "https://www.reuters.com/business/energy/trumps-lightning-reactor-build-program-ignites-nuclear-sector-2025-07-31/"
+    ]
+    for u in urls:
+        r = requests.get(u)
+        if r.ok:
+            articles.append({"url":u,"summary":u})
+    return articles
+
+@st.cache_data
+def fetch_pris_data():
+    resp = requests.get("https://pris.iaea.org/pris/worldstatistics/underconstructionreactorsbytype.aspx")
+    if resp.ok:
+        return resp.text
+    return None
+
+articles = fetch_articles()
+pris_html = fetch_pris_data()
+
+# Example static list
+articles = [
+    {"country": "UK", "reactor": "EPR", "title": "UK approves Sizewell C nuclear plant", "url": urls[0]},
+    {"country": "US", "reactor": "SMR", "title": "Trump orders SMR builds on DOE/DOD land", "url": urls[1]},
+]
+
+organized = defaultdict(lambda: defaultdict(list))
+for a in articles:
+    organized[a["country"]][a["reactor"]].append(a)
+
+# sidebar
+country = st.sidebar.selectbox("Country", options=["All"] + sorted(organized.keys()))
+if country=="All":
+    display = organized.keys()
+else:
+    display = [country]
+
+for c in display:
+    st.header(f"{c}")
+    for tech, items in organized[c].items():
+        with st.expander(f"{tech} ({len(items)})"):
+            for art in items:
+                st.markdown(f"- [{art['title']}]({art['url']})")
+
+# embed IAEA stats
+st.header("📊 Reactor Types Under Construction (source: IAEA/PRIS)")
+if pris_html:
+    st.markdown(pris_html[:500] + "...")  # first block
+
+st.markdown("---")
+st.caption("News sources: Reuters, IAEA PRIS, World Nuclear News. Replace placeholders with full scrapers.")
