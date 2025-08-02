@@ -1,0 +1,17 @@
+# 🌍 Global Nuclear Construction Tracker
+
+A Streamlit app to track global nuclear energy construction activity and relevant news, categorized by country and reactor type.
+
+## Features
+
+- Interactive project explorer with country + reactor filters
+- Live nuclear energy news scraped from World Nuclear News
+- Clean, wide-layout dashboard UI
+
+## Setup
+
+```bash
+git clone https://github.com/youruser/nuclear-tracker.git
+cd nuclear-tracker
+pip install -r requirements.txt
+streamlit run streamlit_app.py
